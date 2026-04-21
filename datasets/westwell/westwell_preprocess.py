@@ -522,7 +522,12 @@ class WestwellProcessor(object):
             lidar_path = os.path.join(self.nusc.dataroot, lidar_data['filename'])
 
             # Load point cloud
-            pc = LidarPointCloud.from_file(lidar_path)
+            # Westwell LiDAR uses 4-field format (x, y, z, intensity)
+            # Pad with zeros for ring field to match nuScenes 5-field format
+            lidar_points = np.fromfile(lidar_path, dtype=np.float32).reshape(-1, 4)
+            ring_field = np.zeros((lidar_points.shape[0], 1), dtype=np.float32)
+            lidar_points_5field = np.concatenate([lidar_points, ring_field], axis=1)
+            pc_points = lidar_points_5field.T  # Shape: (5, N)
 
             # Get lidar extrinsics (lidar to ego)
             calib_data = self.nusc.get('calibrated_sensor', lidar_data['calibrated_sensor_token'])
@@ -532,7 +537,7 @@ class WestwellProcessor(object):
 
             # Save lidar points in ego frame
             lidar_save_path = f"{self.save_dir}/{str(scene_idx).zfill(3)}/lidar/{str(key_frame_idx).zfill(3)}.bin"
-            pc.points.T.astype(np.float32).tofile(lidar_save_path)
+            pc_points.T.astype(np.float32).tofile(lidar_save_path)
 
             # Get ego pose (ego to world)
             ego_pose_data = self.nusc.get('ego_pose', lidar_data['ego_pose_token'])
@@ -565,7 +570,12 @@ class WestwellProcessor(object):
             lidar_path = os.path.join(self.nusc.dataroot, lidar_data['filename'])
 
             # Load point cloud
-            pc = LidarPointCloud.from_file(lidar_path)
+            # Westwell LiDAR uses 4-field format (x, y, z, intensity)
+            # Pad with zeros for ring field to match nuScenes 5-field format
+            lidar_points = np.fromfile(lidar_path, dtype=np.float32).reshape(-1, 4)
+            ring_field = np.zeros((lidar_points.shape[0], 1), dtype=np.float32)
+            lidar_points_5field = np.concatenate([lidar_points, ring_field], axis=1)
+            pc_points = lidar_points_5field.T  # Shape: (5, N)
 
             # Get lidar extrinsics (lidar to ego)
             calib_data = self.nusc.get('calibrated_sensor', lidar_data['calibrated_sensor_token'])
@@ -575,7 +585,7 @@ class WestwellProcessor(object):
 
             # Save lidar points in ego frame
             lidar_save_path = f"{self.save_dir}/{str(scene_idx).zfill(3)}/lidar/{str(frame_idx).zfill(3)}.bin"
-            pc.points.T.astype(np.float32).tofile(lidar_save_path)
+            pc_points.T.astype(np.float32).tofile(lidar_save_path)
 
             # Get ego pose (ego to world)
             ego_pose_data = self.nusc.get('ego_pose', lidar_data['ego_pose_token'])

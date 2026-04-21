@@ -388,7 +388,15 @@ class WestwellLiDARSource(SceneLidarSource):
         for t in trange(
             0, len(self.lidar_filepaths), desc="Loading lidar", dynamic_ncols=True
         ):
-            lidar_info = np.fromfile(self.lidar_filepaths[t], dtype=np.float32).reshape(-1, 4)
+            lidar_info = np.fromfile(self.lidar_filepaths[t], dtype=np.float32)
+            # Westwell LiDAR: preprocessed as 5-field (x,y,z,intensity,ring)
+            # But some files might still be 4-field (x,y,z,intensity)
+            if len(lidar_info) % 5 == 0:
+                lidar_info = lidar_info.reshape(-1, 5)
+            elif len(lidar_info) % 4 == 0:
+                lidar_info = lidar_info.reshape(-1, 4)
+            else:
+                raise ValueError(f"LiDAR file has {len(lidar_info)} elements, not divisible by 4 or 5")
             original_length = len(lidar_info)
             accumulated_num_original_rays += original_length
 

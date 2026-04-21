@@ -34,6 +34,8 @@ def get_layout(dataset_type: str):
         layout = layout_kitti
     elif dataset_type == "nuplan":
         layout = layout_nuplan
+    elif dataset_type == "westwell":
+        layout = layout_westwell
     else:
         raise ValueError(f"dataset_type {dataset_type} not supported")
     return layout
@@ -335,6 +337,53 @@ def layout_argoverse(
             ] = 1
     
     # crop the image according to the lagrest filled area
+    min_y, max_y = np.where(filled_mask)[0].min(), np.where(filled_mask)[0].max()
+    min_x, max_x = np.where(filled_mask)[1].min(), np.where(filled_mask)[1].max()
+    tiled_img = tiled_img[min_y:max_y, min_x:max_x]
+    return tiled_img
+
+def layout_westwell(
+    imgs: List[np.array], cam_names: List[str]
+) -> np.array:
+    """Combine cameras into a tiled image for Westwell dataset.
+    Layout:
+
+        ################################################################
+        # CAM_FRONT_LEFT  #  CAM_FRONT_MID  #  CAM_FRONT_RIGHT   #
+        ################################################################
+        #   CAM_REAR_LEFT   #    CAM_REAR_RIGHT                        #
+        ################################################################
+    """
+    channel = imgs[0].shape[-1]
+    for img in imgs:
+        landscape_width = max(img.shape[0], img.shape[1])
+        landscape_height = min(img.shape[0], img.shape[1])
+        break
+
+    height = landscape_height * 2
+    width = landscape_width * 3
+    tiled_img = np.zeros((height, width, channel), dtype=np.float32)
+    filled_mask = np.zeros((height, width), dtype=np.uint8)
+
+    for idx, cam_name in enumerate(cam_names):
+        img = imgs[idx]
+        if cam_name == "CAM_FRONT_LEFT":
+            tiled_img[:landscape_height, :landscape_width] = img
+            filled_mask[:landscape_height, :landscape_width] = 1
+        elif cam_name == "CAM_FRONT_MID":
+            tiled_img[:landscape_height, landscape_width : 2 * landscape_width] = img
+            filled_mask[:landscape_height, landscape_width : 2 * landscape_width] = 1
+        elif cam_name == "CAM_FRONT_RIGHT":
+            tiled_img[:landscape_height, 2 * landscape_width :] = img
+            filled_mask[:landscape_height, 2 * landscape_width :] = 1
+        elif cam_name == "CAM_REAR_LEFT":
+            tiled_img[landscape_height :, :landscape_width] = img
+            filled_mask[landscape_height :, :landscape_width] = 1
+        elif cam_name == "CAM_REAR_RIGHT":
+            tiled_img[landscape_height :, landscape_width : 2 * landscape_width] = img
+            filled_mask[landscape_height :, landscape_width : 2 * landscape_width] = 1
+
+    # crop the image according to the largest filled area
     min_y, max_y = np.where(filled_mask)[0].min(), np.where(filled_mask)[0].max()
     min_x, max_x = np.where(filled_mask)[1].min(), np.where(filled_mask)[1].max()
     tiled_img = tiled_img[min_y:max_y, min_x:max_x]
