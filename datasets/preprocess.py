@@ -10,6 +10,7 @@ if __name__ == "__main__":
     - Waymo
     - Argoverse
     - NuScenes
+    - Westwell
     - KITTI
     - NUPlan
     - PandaSet
@@ -209,9 +210,22 @@ if __name__ == "__main__":
         )
     elif args.dataset == "nuscenes":
         from datasets.nuscenes.nuscenes_preprocess import NuScenesProcessor
-        
+
         scene_ids_list = [int(scene_id) for scene_id in scene_ids_list]
         dataset_processor = NuScenesProcessor(
+            load_dir=args.data_root,
+            save_dir=args.target_dir,
+            split=args.split,
+            interpolate_N=args.interpolate_N,
+            process_keys=args.process_keys,
+            process_id_list=scene_ids_list,
+            workers=args.workers,
+        )
+    elif args.dataset == "westwell":
+        from datasets.westwell.westwell_preprocess import WestwellProcessor
+
+        scene_ids_list = [int(scene_id) for scene_id in scene_ids_list]
+        dataset_processor = WestwellProcessor(
             load_dir=args.data_root,
             save_dir=args.target_dir,
             split=args.split,
@@ -245,7 +259,7 @@ if __name__ == "__main__":
             workers=args.workers,
         )
     else:
-        raise ValueError(f"Unknown dataset {args.dataset}, please choose from waymo, pandaset, argoverse, nuscenes, kitti, nuplan")
+        raise ValueError(f"Unknown dataset {args.dataset}, please choose from waymo, pandaset, argoverse, nuscenes, westwell, kitti, nuplan")
 
     if args.scene_ids is not None and args.workers == 1:
         for scene_id in args.scene_ids:

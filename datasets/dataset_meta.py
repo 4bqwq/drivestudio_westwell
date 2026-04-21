@@ -139,6 +139,33 @@ DATASETS_CONFIG = {
             "egocar_visible": False
         }
     },
+    "westwell": {
+        0: {
+            "camera_name": "CAM_FRONT_MID",
+            "original_size": (540, 960),
+            "egocar_visible": False
+        },
+        1: {
+            "camera_name": "CAM_FRONT_LEFT",
+            "original_size": (540, 960),
+            "egocar_visible": False
+        },
+        2: {
+            "camera_name": "CAM_FRONT_RIGHT",
+            "original_size": (540, 960),
+            "egocar_visible": False
+        },
+        3: {
+            "camera_name": "CAM_REAR_LEFT",
+            "original_size": (540, 960),
+            "egocar_visible": False
+        },
+        4: {
+            "camera_name": "CAM_REAR_RIGHT",
+            "original_size": (540, 960),
+            "egocar_visible": False
+        },
+    },
     "nuplan": {
         0: {
             "camera_name": "CAM_F0",
